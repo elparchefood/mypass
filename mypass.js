@@ -56,9 +56,10 @@ async function decryptVault(key, iv64, data64) {
 
 // ── Supabase ─────────────────────────────────────────
 async function supaFetch(path, opts={}) {
+  const { headers: extraHeaders={}, ...restOpts } = opts;
   const r = await fetch(`${SUPA_URL}/rest/v1/${path}`, {
-    headers:{ apikey:SUPA_KEY, Authorization:`Bearer ${SUPA_KEY}`, 'Content-Type':'application/json', ...opts.headers },
-    ...opts
+    headers:{ apikey:SUPA_KEY, Authorization:`Bearer ${SUPA_KEY}`, 'Content-Type':'application/json', ...extraHeaders },
+    ...restOpts
   });
   if (!r.ok) { const t = await r.text(); throw new Error(`Supabase ${r.status}: ${t}`); }
   const t = await r.text(); return t ? JSON.parse(t) : null;
@@ -684,3 +685,4 @@ window.RECOVERY_SAVE=async function(){
 // ── INIT ──────────────────────────────────────────────
 S.gen.value=genPassword(S.gen);
 render();
+
