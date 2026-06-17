@@ -106,3 +106,33 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
   .mp-page  { padding: 0; min-height: 100dvh; }
   .mp-phone { width: 100vw; height: 100dvh; border-radius: 0; border: none; box-shadow: none; }
 }
+
+/* =====================================================
+   TOTP / Recuperación
+   ===================================================== */
+.mp-totp-input {
+  display: flex; gap: 8px; justify-content: center; margin: 20px 0;
+}
+.mp-totp-digit {
+  width: 44px; height: 56px; border-radius: 13px;
+  background: rgba(255,255,255,0.045); border: 1px solid rgba(255,255,255,0.1);
+  color: #fff; font-family: 'JetBrains Mono',monospace; font-size: 24px; font-weight: 700;
+  text-align: center; outline: none; transition: border-color 0.2s, background 0.2s;
+  caret-color: #4ade80;
+}
+.mp-totp-digit:focus { border-color: rgba(74,222,128,0.55); background: rgba(74,222,128,0.05); }
+.mp-qr-wrap {
+  background: #fff; border-radius: 18px; padding: 16px;
+  display: flex; align-items: center; justify-content: center; margin: 20px auto;
+  width: 200px; height: 200px;
+}
+.mp-countdown {
+  font-family: 'JetBrains Mono', monospace; font-size: 28px; font-weight: 700;
+  color: #4ade80; text-align: center; margin: 12px 0;
+}
+.mp-countdown.urgent { color: #f87171; }
+.mp-step-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.15);
+  transition: background 0.2s;
+}
+.mp-step-dot.active { background: #4ade80; }
