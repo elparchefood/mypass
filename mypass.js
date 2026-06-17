@@ -3,9 +3,8 @@
 // =====================================================
 import { credRowHTML, getColor, getInitial } from './credrow.js';
 import {
-  generateSecret, verifyCode, secondsLeft,
-  qrImageUrl, deriveRecoveryKey,
-  encryptKeyForRecovery, decryptKeyFromRecovery
+  generateSecret, verifyCode, secondsLeft, otpauthUri,
+  deriveRecoveryKey, encryptKeyForRecovery, decryptKeyFromRecovery
 } from './totp.js';
 
 // ── Config ───────────────────────────────────────────
