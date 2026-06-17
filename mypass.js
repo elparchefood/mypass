@@ -154,10 +154,7 @@ const I = {
 };
 
 // ── Status / Nav ─────────────────────────────────────
-function statusBarHTML() {
-  const now=new Date(), t=`${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
-  return `<div class="mp-statusbar"><span class="mp-statusbar-time">${t}</span><div style="display:flex;align-items:center;gap:7px;">${I.sig}${I.bat}</div></div>`;
-}
+
 function navHTML(active) {
   const tabs=[{id:'vault',label:'Bóveda',icon:I.lock},{id:'categories',label:'Categorías',icon:I.layers},{id:'generator',label:'Generar',icon:I.key},{id:'audit',label:'Salud',icon:I.shield}];
   return `<nav class="mp-nav">${tabs.map(t=>`<button class="mp-nav-tab ${active===t.id?'active':''}" onclick="GO('${t.id}')"><span style="color:${active===t.id?'#4ade80':'#52525b'}">${t.icon}</span><span class="label">${t.label}</span></button>`).join('')}</nav>`;
@@ -466,7 +463,7 @@ function render() {
     const screens={vault:screenVault,categories:screenCategories,generator:screenGenerator,audit:screenAudit,detail:screenDetail,add:screenForm,edit:screenForm};
     inner=(screens[S.screen]||screenVault)();
   }
-  app.innerHTML=`<div class="mp-page"><div class="mp-phone">${statusBarHTML()}<div class="mp-content"><div class="mp-screen" data-scroll>${inner}</div>${S.toast?`<div class="mp-toast"><span style="color:#4ade80;">${I.check}</span>${esc(S.toast)}</div>`:''}</div></div></div>`;
+  app.innerHTML=`<div class="mp-page"><div class="mp-phone"><div class="mp-content"><div class="mp-screen" data-scroll>${inner}</div>${S.toast?`<div class="mp-toast"><span style="color:#4ade80;">${I.check}</span>${esc(S.toast)}</div>`:''}</div></div></div>`;
 
   // Restaurar pin
   const pinEl=document.getElementById('pinInput'); if(pinEl){pinEl.value=S.pin;pinEl.focus();}
