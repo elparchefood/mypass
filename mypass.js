@@ -707,6 +707,18 @@ function resetLockTimer() {
   document.addEventListener(ev, resetLockTimer, { passive: true })
 );
 
+// ── BLOQUEAR SCROLL EXTERNO (iOS / touch) ─────────────
+document.addEventListener('touchmove', e => {
+  const screen = e.target.closest('.mp-screen');
+  if (!screen) { e.preventDefault(); return; }
+  // permitir solo si hay contenido que scrollear
+  const atTop    = screen.scrollTop === 0;
+  const atBottom = screen.scrollTop + screen.clientHeight >= screen.scrollHeight - 1;
+  if ((atTop && e.touches[0].clientY > 0) || (atBottom)) {
+    if (atTop && atBottom) e.preventDefault(); // nada que scrollear
+  }
+}, { passive: false });
+
 // ── INIT ──────────────────────────────────────────────
 S.gen.value=genPassword(S.gen);
 render();
