@@ -232,7 +232,7 @@ function screenLock() {
       <div style="display:flex;gap:6px;margin-bottom:24px;">${[1,2].map(n=>`<div class="mp-step-dot ${n===1?'active':''}"></div>`).join('')}</div>
       <div style="font-size:21px;font-weight:700;color:#ECECEA;letter-spacing:-0.5px;">Configura Google Authenticator</div>
       <div style="font-size:13px;color:#7b7b82;margin-top:8px;line-height:1.5;max-width:280px;">Abre la app, toca <strong style="color:#ECECEA;">+</strong> → <strong style="color:#ECECEA;">Escanear código QR</strong></div>
-      <div class="mp-qr-wrap"><img src="${qrImageUrl(S.totpSecret,'MyPass')}" width="168" height="168" alt="QR Code"></div>
+      <div class="mp-qr-wrap"><div id="qr-render" style="width:168px;height:168px;"></div></div>
       <div style="font-size:11px;color:#5a5a60;margin-bottom:8px;">¿No puedes escanear? Ingresa el código manual:</div>
       <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#4ade80;letter-spacing:2px;word-break:break-all;background:rgba(74,222,128,0.07);border:1px solid rgba(74,222,128,0.2);border-radius:10px;padding:10px 14px;margin-bottom:24px;">${S.totpSecret}</div>
       <button class="mp-btn-primary" style="width:100%;" onclick="S.authStep='totp-setup-confirm';render()">Ya lo escaneé →</button>
@@ -471,6 +471,19 @@ function render() {
   }
   if(S.authStep==='recovery-1')         bindTotpInput('totp-rec1',    code=>RECOVERY_CODE1(code));
   if(S.authStep==='recovery-2')         bindTotpInput('totp-rec2',    code=>RECOVERY_CODE2(code));
+
+  // Generar QR client-side (qrcodejs desde CDN, sin dependencia de APIs externas)
+  if(S.authStep==='totp-setup-scan' && S.totpSecret) {
+    const qrEl = document.getElementById('qr-render');
+    if(qrEl && typeof QRCode !== 'undefined') {
+      qrEl.innerHTML = '';
+      new QRCode(qrEl, {
+        text: `otpauth://totp/MyPass?secret=${S.totpSecret}&issuer=MyPass&algorithm=SHA1&digits=6&period=30`,
+        width: 168, height: 168, colorDark: '#000000', colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    }
+  }
 
   // Countdown tick
   if(S.authStep==='recovery-2') startCountdown();
