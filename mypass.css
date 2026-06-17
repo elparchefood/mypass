@@ -2,7 +2,7 @@
    My Pass — Estilos
    ===================================================== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; background: #060607; font-family: 'Space Grotesk', -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+html, body { height: 100%; overflow: hidden; background: #060607; font-family: 'Space Grotesk', -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
 input, button, textarea, select { font-family: inherit; }
 input::placeholder, textarea::placeholder { color: #4d4d54; }
 [data-scroll] { scrollbar-width: none; -ms-overflow-style: none; }
@@ -18,7 +18,7 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
 @keyframes mp-fade  { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
 /* Page wrapper */
-.mp-page  { min-height: 100vh; width: 100%; background: radial-gradient(125% 80% at 50% -10%, #111114 0%, #060607 58%); display: flex; align-items: center; justify-content: center; padding: 32px 16px; }
+.mp-page  { height: 100vh; width: 100%; overflow: hidden; background: radial-gradient(125% 80% at 50% -10%, #111114 0%, #060607 58%); display: flex; align-items: center; justify-content: center; padding: 32px 16px; }
 .mp-phone { position: relative; width: 412px; height: 892px; background: #0a0a0c; border-radius: 46px; border: 1px solid rgba(255,255,255,0.09); box-shadow: 0 50px 130px rgba(0,0,0,0.75), 0 0 0 9px #000, 0 0 0 10px rgba(255,255,255,0.05); overflow: hidden; display: flex; flex-direction: column; }
 
 /* Status bar */
