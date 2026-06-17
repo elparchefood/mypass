@@ -26,7 +26,7 @@ let S = {
   // App
   screen: 'vault', query: '', catFilter: 'all',
   selectedId: null, revealed: false, editingId: null,
-  form: { platform:'', type:'password', username:'', email:'', secret:'', url:'', tags:'', note:'' },
+  form: { platform:'', type:'password', username:'', email:'', secret:'', secretConfirm:'', url:'', tags:'', note:'' },
   gen: { length: 20, upper:true, lower:true, numbers:true, symbols:true, value:'' },
   creds: [], toast: null, loading: false,
   cryptoKey: null, saltB64: null,
@@ -442,6 +442,12 @@ function screenForm() {
         <button class="mp-input-ico" onclick="S.showPin=!S.showPin;render()" style="color:#6b6b72;">${S.showPin?I.eyeOff:I.eye}</button></div>
         <div id="strArea">${f.secret&&f.type==='password'?`<div class="mp-strength-bar"><div class="mp-strength-fill" style="width:${fst.pct}%;background:${fst.color};"></div></div><div style="font-size:11px;color:${fst.color};margin-top:4px;font-weight:600;">${fst.label}</div>`:''}</div>
       </div>
+      ${!isEdit?`<div>
+        <div style="font-size:12px;color:#7b7b82;font-weight:500;margin-bottom:6px;">Confirmar ${secretLabel(f.type)} *</div>
+        <div class="mp-input-wrap"><input class="mp-input mono" type="${S.showPin?'text':'password'}" placeholder="Repite la ${secretLabel(f.type)}" value="${esc(f.secretConfirm)}" oninput="S.form.secretConfirm=this.value">
+        </div>
+        ${f.secretConfirm&&f.secret!==f.secretConfirm?'<div style="font-size:11px;color:#f87171;margin-top:4px;font-weight:600;">⚠ No coinciden</div>':f.secretConfirm&&f.secret===f.secretConfirm?'<div style="font-size:11px;color:#4ade80;margin-top:4px;font-weight:600;">✓ Coinciden</div>':''}
+      </div>`:''}
       <input class="mp-input mono" type="url" placeholder="Sitio web" value="${esc(f.url)}" oninput="S.form.url=this.value">
       <input class="mp-input" type="text" placeholder="Etiquetas (separadas por coma)" value="${esc(tagsStr)}" oninput="S.form.tags=this.value">
       <textarea class="mp-input" placeholder="Nota" rows="3" oninput="S.form.note=this.value" style="resize:none;line-height:1.5;">${esc(f.note)}</textarea>
@@ -514,7 +520,7 @@ window.GO=function(sc){S.screen=sc;S.query='';S.selectedId=null;S.revealed=false
 window.LOCK=function(){clearInterval(S.countdownTimer);S.locked=true;S.cryptoKey=null;S.creds=[];S.pin='';S.authStep='password';S.screen='vault';render();};
 window.TOAST=function(msg){S.toast=msg;render();setTimeout(()=>{S.toast=null;render();},1700);};
 window.OPEN_DETAIL=function(id){S.selectedId=id;S.revealed=false;S.screen='detail';render();};
-window.OPEN_ADD=function(){S.editingId=null;S.showPin=false;S.form={platform:'',type:'password',username:'',email:'',secret:'',url:'',tags:'',note:''};S.screen='add';render();};
+window.OPEN_ADD=function(){S.editingId=null;S.showPin=false;S.form={platform:'',type:'password',username:'',email:'',secret:'',secretConfirm:'',url:'',tags:'',note:''};S.screen='add';render();};
 window.OPEN_EDIT=function(id){const c=S.creds.find(x=>x.id===id);if(!c)return;S.editingId=id;S.showPin=false;S.form={...c,tags:(c.tags||[]).join(', ')};S.screen='edit';render();};
 window.CANCEL_FORM=function(){S.screen=S.editingId?'detail':'vault';render();};
 window.BACK=function(){S.screen='vault';S.selectedId=null;render();};
@@ -525,7 +531,7 @@ window.COPY_FIELD=function(id,field,msg){const c=S.creds.find(x=>x.id===id);if(!
 window.COPY_GEN=function(){navigator.clipboard.writeText(S.gen.value).then(()=>TOAST('Contraseña copiada')).catch(()=>TOAST('Error al copiar'));};
 window.REGEN=function(){S.gen.value=genPassword(S.gen);render();};
 window.TOGGLE_GEN=function(k){const active=['upper','lower','numbers','symbols'].filter(x=>S.gen[x]);if(active.length===1&&active[0]===k)return;S.gen[k]=!S.gen[k];REGEN();};
-window.USE_GEN=function(){S.editingId=null;S.showPin=false;S.form={platform:'',type:'password',username:'',email:'',secret:S.gen.value,url:'',tags:'',note:''};S.screen='add';render();};
+window.USE_GEN=function(){S.editingId=null;S.showPin=false;S.form={platform:'',type:'password',username:'',email:'',secret:S.gen.value,secretConfirm:'',url:'',tags:'',note:''};S.screen='add';render();};
 window.PREFILL_GEN=function(){S.form.secret=genPassword(S.gen);render();};
 window.PICK_PLATFORM=function(name){
   S.form.platform=name;
@@ -549,7 +555,7 @@ window.FILTER_PLATFORMS=function(q){
       <span style="font-size:10px;color:#ECECEA;white-space:nowrap;max-width:62px;overflow:hidden;text-overflow:ellipsis;">${p.name}</span>
     </button>`).join('');
 };
-window.SAVE_CRED=async function(){const f=S.form;if(!f.platform.trim()||!f.secret.trim()){TOAST('Completa plataforma y secreto');return;}const tags=(typeof f.tags==='string'?f.tags:f.tags.join(',')).split(',').map(t=>t.trim()).filter(Boolean);if(S.editingId){const id=S.editingId;S.creds=S.creds.map(c=>c.id===id?{...c,...f,tags,updated:new Date().toISOString()}:c);S.screen='detail';}else{S.creds=[...S.creds,{id:uid(),...f,tags,fav:false,updated:new Date().toISOString()}];S.screen='vault';}await persist();render();TOAST(S.editingId?'Cambios guardados':'Credencial guardada');};
+window.SAVE_CRED=async function(){const f=S.form;if(!f.platform.trim()||!f.secret.trim()){TOAST('Completa plataforma y secreto');return;}if(!S.editingId&&f.secret!==f.secretConfirm){TOAST('Las contraseñas no coinciden');return;}const tags=(typeof f.tags==='string'?f.tags:f.tags.join(',')).split(',').map(t=>t.trim()).filter(Boolean);if(S.editingId){const id=S.editingId;S.creds=S.creds.map(c=>c.id===id?{...c,...f,tags,updated:new Date().toISOString()}:c);S.screen='detail';}else{S.creds=[...S.creds,{id:uid(),...f,tags,fav:false,updated:new Date().toISOString()}];S.screen='vault';}await persist();render();TOAST(S.editingId?'Cambios guardados':'Credencial guardada');};
 
 // ── UNLOCK ────────────────────────────────────────────
 window.UNLOCK=async function(){
