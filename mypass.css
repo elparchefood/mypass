@@ -2,7 +2,7 @@
    My Pass — Estilos
    ===================================================== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; overflow: hidden; background: #060607; font-family: 'Space Grotesk', -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+html, body { height: 100%; overflow: hidden; position: fixed; width: 100%; overscroll-behavior: none; touch-action: none; background: #060607; font-family: 'Space Grotesk', -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
 input, button, textarea, select { font-family: inherit; }
 input::placeholder, textarea::placeholder { color: #4d4d54; }
 [data-scroll] { scrollbar-width: none; -ms-overflow-style: none; }
@@ -27,7 +27,7 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
 
 /* Content area */
 .mp-content { flex: 1; position: relative; overflow: hidden; display: flex; flex-direction: column; }
-.mp-screen  { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; padding: 6px 18px 100px; animation: mp-fade 0.3s ease; }
+.mp-screen  { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; padding: 6px 18px 100px; animation: mp-fade 0.3s ease; touch-action: pan-y; overscroll-behavior: contain; }
 .mp-screen::-webkit-scrollbar { display: none; }
 
 /* Nav bar */
