@@ -1,7 +1,7 @@
 // =====================================================
 // My Pass — App principal
 // =====================================================
-import { credRowHTML, getColor, getInitial } from './credrow.js';
+import { credRowHTML, getColor, getInitial, platformAvatarHTML, PLATFORMS } from './credrow.js';
 import {
   generateSecret, verifyCode, secondsLeft, otpauthUri,
   deriveRecoveryKey, encryptKeyForRecovery, decryptKeyFromRecovery
@@ -382,7 +382,7 @@ function screenDetail() {
       </div>
     </div>
     <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:24px;">
-      <div style="width:74px;height:74px;border-radius:22px;background:${getColor(c.platform)};display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:28px;box-shadow:0 4px 14px rgba(0,0,0,0.45);margin-bottom:12px;">${getInitial(c.platform)}</div>
+      ${platformAvatarHTML(c.platform, 74, 22)}
       <h2 style="font-size:23px;font-weight:700;color:#ECECEA;letter-spacing:-0.5px;">${esc(c.platform)}</h2>
       ${c.url?`<p style="font-size:13px;color:#7b7b82;font-family:'JetBrains Mono',monospace;margin-top:4px;">${esc(c.url)}</p>`:''}
     </div>
@@ -414,7 +414,22 @@ function screenForm() {
     </div>
     <div class="mp-seg"><button class="mp-seg-btn ${f.type==='password'?'on':'off'}" onclick="S.form.type='password';render()">Contraseña</button><button class="mp-seg-btn ${f.type==='token'?'on':'off'}" onclick="S.form.type='token';render()">Token</button><button class="mp-seg-btn ${f.type==='api'?'on':'off'}" onclick="S.form.type='api';render()">API key</button></div>
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
-      <input class="mp-input" type="text" placeholder="Plataforma *" value="${esc(f.platform)}" oninput="S.form.platform=this.value">
+      <div>
+        <div style="font-size:12px;color:#7b7b82;font-weight:500;margin-bottom:8px;">Plataforma *</div>
+        <div class="mp-input-wrap" style="margin-bottom:10px;">
+          <input id="platform-input" class="mp-input" type="text" placeholder="Buscar o escribir plataforma…" value="${esc(f.platform)}"
+            oninput="S.form.platform=this.value;FILTER_PLATFORMS(this.value)">
+        </div>
+        <div id="platform-grid" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px;">
+          ${PLATFORMS.filter(p=>!f.platform||p.name.toLowerCase().includes(f.platform.toLowerCase())).slice(0,20).map(p=>`
+            <button onclick="PICK_PLATFORM('${p.name}')" style="display:flex;flex-direction:column;align-items:center;gap:5px;background:rgba(255,255,255,0.04);border:1px solid ${f.platform===p.name?'#4ade80':'rgba(255,255,255,0.08)'};border-radius:12px;padding:8px 10px;cursor:pointer;min-width:62px;">
+              <div style="width:36px;height:36px;border-radius:10px;background:${p.color};display:flex;align-items:center;justify-content:center;overflow:hidden;">
+                <img src="https://www.google.com/s2/favicons?domain=${p.domain}&sz=64" width="22" height="22" style="object-fit:contain;">
+              </div>
+              <span style="font-size:10px;color:#ECECEA;white-space:nowrap;max-width:62px;overflow:hidden;text-overflow:ellipsis;">${p.name}</span>
+            </button>`).join('')}
+        </div>
+      </div>
       <input class="mp-input mono" type="text" placeholder="Usuario" value="${esc(f.username)}" oninput="S.form.username=this.value">
       <input class="mp-input mono" type="email" placeholder="Correo" value="${esc(f.email)}" oninput="S.form.email=this.value">
       <div>
@@ -508,6 +523,28 @@ window.REGEN=function(){S.gen.value=genPassword(S.gen);render();};
 window.TOGGLE_GEN=function(k){const active=['upper','lower','numbers','symbols'].filter(x=>S.gen[x]);if(active.length===1&&active[0]===k)return;S.gen[k]=!S.gen[k];REGEN();};
 window.USE_GEN=function(){S.editingId=null;S.showPin=false;S.form={platform:'',type:'password',username:'',email:'',secret:S.gen.value,url:'',tags:'',note:''};S.screen='add';render();};
 window.PREFILL_GEN=function(){S.form.secret=genPassword(S.gen);render();};
+window.PICK_PLATFORM=function(name){
+  S.form.platform=name;
+  const inp=document.getElementById('platform-input');
+  if(inp) inp.value=name;
+  const grid=document.getElementById('platform-grid');
+  if(grid) grid.querySelectorAll('button').forEach(btn=>{
+    const isSelected=btn.textContent.trim()===name;
+    btn.style.borderColor=isSelected?'#4ade80':'rgba(255,255,255,0.08)';
+  });
+};
+window.FILTER_PLATFORMS=function(q){
+  const grid=document.getElementById('platform-grid');
+  if(!grid)return;
+  const filtered=PLATFORMS.filter(p=>!q||p.name.toLowerCase().includes(q.toLowerCase())).slice(0,20);
+  grid.innerHTML=filtered.map(p=>`
+    <button onclick="PICK_PLATFORM('${p.name}')" style="display:flex;flex-direction:column;align-items:center;gap:5px;background:rgba(255,255,255,0.04);border:1px solid ${S.form.platform===p.name?'#4ade80':'rgba(255,255,255,0.08)'};border-radius:12px;padding:8px 10px;cursor:pointer;min-width:62px;">
+      <div style="width:36px;height:36px;border-radius:10px;background:${p.color};display:flex;align-items:center;justify-content:center;overflow:hidden;">
+        <img src="https://www.google.com/s2/favicons?domain=${p.domain}&sz=64" width="22" height="22" style="object-fit:contain;">
+      </div>
+      <span style="font-size:10px;color:#ECECEA;white-space:nowrap;max-width:62px;overflow:hidden;text-overflow:ellipsis;">${p.name}</span>
+    </button>`).join('');
+};
 window.SAVE_CRED=async function(){const f=S.form;if(!f.platform.trim()||!f.secret.trim()){TOAST('Completa plataforma y secreto');return;}const tags=(typeof f.tags==='string'?f.tags:f.tags.join(',')).split(',').map(t=>t.trim()).filter(Boolean);if(S.editingId){const id=S.editingId;S.creds=S.creds.map(c=>c.id===id?{...c,...f,tags,updated:new Date().toISOString()}:c);S.screen='detail';}else{S.creds=[...S.creds,{id:uid(),...f,tags,fav:false,updated:new Date().toISOString()}];S.screen='vault';}await persist();render();TOAST(S.editingId?'Cambios guardados':'Credencial guardada');};
 
 // ── UNLOCK ────────────────────────────────────────────
