@@ -495,6 +495,7 @@ function startCountdown() {
 
 // ── ACCIONES ──────────────────────────────────────────
 window.S=S;
+window.render=render;
 window.UPD_STR=function(){const el=document.getElementById('strArea');if(!el)return;const inp=el.closest('div').querySelector('input');if(!inp)return;const s=inp.value;S.form.secret=s;if(s&&S.form.type==='password'){const st=strength(s);el.innerHTML=`<div class="mp-strength-bar"><div class="mp-strength-fill" style="width:${st.pct}%;background:${st.color};"></div></div><div style="font-size:11px;color:${st.color};margin-top:4px;font-weight:600;">${st.label}</div>`;}else el.innerHTML='';};
 
 window.GO=function(sc){S.screen=sc;S.query='';S.selectedId=null;S.revealed=false;render();};
