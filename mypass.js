@@ -614,7 +614,7 @@ window.TOTP_VERIFY=async function(code){
     const creds=await decryptVault(S.cryptoKey,row.iv,row.encrypted_data);
     S.creds=creds; S.totpSecretSaved=row.totp_secret; S.recoveryBlobSaved=row.recovery_blob; S.recoveryIvSaved=row.recovery_iv;
     S.locked=false;S.authStep='done';S.loading=false;render();
-    TOAST('Bóveda desbloqueada ✓');
+    TOAST('Bóveda desbloqueada ✓'); resetLockTimer();
   } catch { S.loading=false;render();TOAST('Error al verificar'); }
 };
 
@@ -632,7 +632,7 @@ window.TOTP_SETUP_CONFIRM=async function(code){
     await saveVaultRow({ encrypted_data:e.data, iv:e.iv, salt:S.saltB64, totp_secret:S.totpSecret, recovery_blob:blob, recovery_iv:riv });
     S.totpSecretSaved=S.totpSecret; S.recoveryBlobSaved=blob; S.recoveryIvSaved=riv;
     S.locked=false;S.authStep='done';S.loading=false;S.totpSecret=null;render();
-    TOAST('Google Authenticator activado ✓');
+    TOAST('Google Authenticator activado ✓'); resetLockTimer();
   } catch(e){ S.loading=false;render();TOAST('Error al guardar'); }
 };
 
@@ -687,6 +687,28 @@ window.RECOVERY_SAVE=async function(){
     TOAST('Contraseña restablecida ✓');
   } catch { S.loading=false;render();TOAST('Error al guardar'); }
 };
+
+// ── AUTO-LOCK ─────────────────────────────────────────
+const LOCK_MS = 5 * 60 * 1000; // 5 minutos de inactividad
+let lockTimer = null;
+
+function lockApp() {
+  S.cryptoKey = null; S.creds = []; S.pin = '';
+  S.totpSecretSaved = null; S.recoveryBlobSaved = null; S.recoveryIvSaved = null;
+  S.locked = true; S.authStep = 'password'; S.screen = 'vault';
+  clearTimeout(lockTimer); lockTimer = null;
+  render();
+}
+
+function resetLockTimer() {
+  if (S.locked || S.authStep !== 'done') return;
+  clearTimeout(lockTimer);
+  lockTimer = setTimeout(lockApp, LOCK_MS);
+}
+
+['mousemove','keydown','click','touchstart','scroll'].forEach(ev =>
+  document.addEventListener(ev, resetLockTimer, { passive: true })
+);
 
 // ── INIT ──────────────────────────────────────────────
 S.gen.value=genPassword(S.gen);
