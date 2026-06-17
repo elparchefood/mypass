@@ -6,8 +6,16 @@ const BASE32_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
 
 /** Genera un secreto TOTP aleatorio en Base32 (20 bytes = 160 bits) */
 export function generateSecret() {
+  // 20 bytes → 32 Base32 chars (160 bits, múltiplo de 8 = máx compatibilidad con GA)
   const bytes = crypto.getRandomValues(new Uint8Array(20));
-  return Array.from(bytes).map(b => BASE32_CHARS[b & 31]).join('');
+  let out = '', buf = 0, bits = 0;
+  for (const b of bytes) {
+    buf = (buf << 8) | b;
+    bits += 8;
+    while (bits >= 5) { bits -= 5; out += BASE32_CHARS[(buf >> bits) & 31]; }
+  }
+  if (bits > 0) out += BASE32_CHARS[(buf << (5 - bits)) & 31];
+  return out.padEnd(32, '=').replace(/=/g, '').slice(0, 32);
 }
 
 /** Decodifica Base32 → Uint8Array */
@@ -65,7 +73,7 @@ export function otpauthUri(secret, label = 'MyPass') {
 /** URL de imagen QR (api.qrserver.com — gratis, sin API key) */
 export function qrImageUrl(secret, label = 'MyPass') {
   const uri = encodeURIComponent(otpauthUri(secret, label));
-  return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&ecc=M&data=${uri}`;
+  return `https://quickchart.io/qr?size=200&margin=2&text=${uri}`;
 }
 
 /** Deriva la clave de recuperación a partir del secreto TOTP */

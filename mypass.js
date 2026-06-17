@@ -243,8 +243,12 @@ function screenLock() {
     <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 32px;text-align:center;animation:mp-fade .3s ease;">
       <div style="display:flex;gap:6px;margin-bottom:24px;">${[1,2].map(n=>`<div class="mp-step-dot ${n===2?'active':''}"></div>`).join('')}</div>
       <div style="font-size:21px;font-weight:700;color:#ECECEA;letter-spacing:-0.5px;">Confirma el código</div>
-      <div style="font-size:13.5px;color:#7b7b82;margin-top:8px;line-height:1.5;">Ingresa el código de 6 dígitos que ves en Google Authenticator</div>
+      <div style="font-size:13.5px;color:#7b7b82;margin-top:8px;margin-bottom:20px;line-height:1.5;">Ingresa el código de 6 dígitos que ves en Google Authenticator</div>
       ${totpInputHTML('totp-confirm')}
+      <div id="expected-code-area" style="margin-top:12px;padding:10px 18px;background:rgba(74,222,128,0.07);border:1px solid rgba(74,222,128,0.2);border-radius:12px;font-size:12px;color:#7b7b82;">
+        Código esperado ahora: <span id="expected-code" style="font-family:'JetBrains Mono',monospace;font-weight:700;color:#4ade80;letter-spacing:3px;font-size:16px;">…</span>
+        <span style="margin-left:8px;font-size:11px;color:#5a5a60;">(<span id="expected-sec">${secondsLeft()}</span>s)</span>
+      </div>
       ${S.loading?`<div style="display:flex;align-items:center;gap:10px;color:#4ade80;font-size:14px;"><div class="mp-spin"></div>Activando…</div>`:''}
       <button onclick="S.authStep='totp-setup-scan';render()" style="background:none;border:none;color:#7b7b82;font-size:13px;cursor:pointer;margin-top:20px;">← Ver QR de nuevo</button>
     </div>`;
@@ -448,7 +452,23 @@ function render() {
 
   // Bind TOTP inputs
   if(S.authStep==='totp-verify')       bindTotpInput('totp-main',    code=>TOTP_VERIFY(code));
-  if(S.authStep==='totp-setup-confirm') bindTotpInput('totp-confirm', code=>TOTP_SETUP_CONFIRM(code));
+  if(S.authStep==='totp-setup-confirm') {
+    bindTotpInput('totp-confirm', code=>TOTP_SETUP_CONFIRM(code));
+    // Mostrar y actualizar el código esperado para que el usuario pueda compararlo con GA
+    if(S.totpSecret) {
+      const updateExpected = async () => {
+        const el = document.getElementById('expected-code');
+        const sec = document.getElementById('expected-sec');
+        if(!el) return;
+        const { currentCode, secondsLeft } = await import('./totp.js');
+        el.textContent = await currentCode(S.totpSecret);
+        if(sec) sec.textContent = secondsLeft() + 's';
+      };
+      updateExpected();
+      clearInterval(S._expectedTimer);
+      S._expectedTimer = setInterval(updateExpected, 1000);
+    }
+  }
   if(S.authStep==='recovery-1')         bindTotpInput('totp-rec1',    code=>RECOVERY_CODE1(code));
   if(S.authStep==='recovery-2')         bindTotpInput('totp-rec2',    code=>RECOVERY_CODE2(code));
 
