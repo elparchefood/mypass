@@ -20,6 +20,7 @@ let S = {
                           // | 'recovery-1' | 'recovery-2' | 'recovery-new-pwd'
   totpCode: '', totpCode2: '', recoveryNewPwd: '',
   totpSecret: null,        // sólo durante setup
+  totpSecretSaved: null, recoveryBlobSaved: null, recoveryIvSaved: null,
   countdownSec: 30, countdownTimer: null,
   recoveryKey: null,       // vault key recuperada (antes de poner nueva pwd)
   // App
@@ -59,6 +60,7 @@ async function supaFetch(path, opts={}) {
     headers:{ apikey:SUPA_KEY, Authorization:`Bearer ${SUPA_KEY}`, 'Content-Type':'application/json', ...opts.headers },
     ...opts
   });
+  if (!r.ok) { const t = await r.text(); throw new Error(`Supabase ${r.status}: ${t}`); }
   const t = await r.text(); return t ? JSON.parse(t) : null;
 }
 async function loadVaultRow() {
@@ -74,7 +76,8 @@ async function saveVaultRow(data) {
 async function persist() {
   if (!S.cryptoKey) return;
   const e = await encryptVault(S.cryptoKey, S.creds);
-  await saveVaultRow({ encrypted_data:e.data, iv:e.iv, salt:S.saltB64 });
+  const extra = S.totpSecretSaved ? { totp_secret:S.totpSecretSaved, recovery_blob:S.recoveryBlobSaved, recovery_iv:S.recoveryIvSaved } : {};
+  await saveVaultRow({ encrypted_data:e.data, iv:e.iv, salt:S.saltB64, ...extra });
 }
 
 // ── Helpers ──────────────────────────────────────────
@@ -602,7 +605,8 @@ window.TOTP_VERIFY=async function(code){
     if(!ok){S.loading=false;render();TOAST('Código incorrecto');return;}
     // Cargar credenciales
     const creds=await decryptVault(S.cryptoKey,row.iv,row.encrypted_data);
-    S.creds=creds;S.locked=false;S.authStep='done';S.loading=false;render();
+    S.creds=creds; S.totpSecretSaved=row.totp_secret; S.recoveryBlobSaved=row.recovery_blob; S.recoveryIvSaved=row.recovery_iv;
+    S.locked=false;S.authStep='done';S.loading=false;render();
     TOAST('Bóveda desbloqueada ✓');
   } catch { S.loading=false;render();TOAST('Error al verificar'); }
 };
@@ -619,6 +623,7 @@ window.TOTP_SETUP_CONFIRM=async function(code){
     // Guardar vault + totp_secret + recovery
     const e=await encryptVault(S.cryptoKey,S.creds);
     await saveVaultRow({ encrypted_data:e.data, iv:e.iv, salt:S.saltB64, totp_secret:S.totpSecret, recovery_blob:blob, recovery_iv:riv });
+    S.totpSecretSaved=S.totpSecret; S.recoveryBlobSaved=blob; S.recoveryIvSaved=riv;
     S.locked=false;S.authStep='done';S.loading=false;S.totpSecret=null;render();
     TOAST('Google Authenticator activado ✓');
   } catch(e){ S.loading=false;render();TOAST('Error al guardar'); }
